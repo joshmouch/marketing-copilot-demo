@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Industrial Image — Marketing Co-Pilot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ii-purple: #6d28d9;
+      --ii-purple-dark: #4c1d95;
+      --ii-purple-light: #8b5cf6;
+      --ii-accent: #f59e0b;
+      --bg: #faf5ff;
+      --card: #ffffff;
+      --text: #1e1b4b;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+      --green: #16a34a;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Demo Banner */
+    .demo-banner {
+      background: linear-gradient(90deg, var(--ii-accent), #d97706);
+      color: #1e1b4b; text-align: center; padding: 8px 16px; font-size: 12px; font-weight: 600;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--ii-purple-dark), var(--ii-purple));
+      color: white; padding: 16px 28px; display: flex; align-items: center; gap: 16px;
+    }
+    header .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    header .subtitle { font-size: 13px; opacity: 0.8; }
+    header .badge { margin-left: auto; background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+
+    /* Main Layout */
+    .main-container {
+      display: flex; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; padding: 24px; gap: 24px;
+    }
+
+    /* Sidebar — Content Types */
+    .sidebar {
+      width: 280px; flex-shrink: 0;
+    }
+    .sidebar h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); margin-bottom: 12px; }
+    .content-type {
+      background: var(--card); border: 2px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s;
+    }
+    .content-type:hover { border-color: var(--ii-purple-light); }
+    .content-type.active { border-color: var(--ii-purple); background: #f5f3ff; }
+    .content-type .ct-icon { font-size: 20px; margin-bottom: 4px; }
+    .content-type .ct-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .content-type .ct-desc { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+    /* Chat Area */
+    .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .chat-header-bar {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px 12px 0 0;
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .chat-header-bar .ch-icon { font-size: 18px; }
+    .chat-header-bar .ch-title { font-weight: 600; font-size: 14px; }
+    .chat-header-bar .ch-sub { font-size: 12px; color: var(--text-light); }
+
+    .chat-messages {
+      flex: 1; background: var(--card); border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border); padding: 20px;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+      min-height: 400px;
+    }
+    .chat-msg { max-width: 88%; padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6; }
+    .chat-msg.user { align-self: flex-end; background: var(--ii-purple); color: white; border-bottom-right-radius: 4px; }
+    .chat-msg.ai { align-self: flex-start; background: #f3f4f6; color: var(--text); border-bottom-left-radius: 4px; }
+    .chat-msg.ai h4 { font-size: 13px; color: var(--ii-purple); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .chat-msg.ai p { margin: 0 0 8px; }
+    .chat-msg.ai p:last-child { margin-bottom: 0; }
+    .chat-msg.ai ul { margin: 4px 0 8px 18px; }
+    .chat-msg.ai li { margin-bottom: 4px; }
+    .chat-msg.ai .tag { display: inline-block; background: #ede9fe; color: var(--ii-purple); font-size: 11px; padding: 2px 8px; border-radius: 8px; margin: 2px 2px 2px 0; }
+    .chat-msg.system { align-self: center; background: none; color: var(--text-light); font-size: 12px; font-style: italic; text-align: center; }
+    .chat-msg.info {
+      align-self: center; background: #f5f3ff; color: var(--ii-purple-dark);
+      font-size: 12px; border: 1px solid #ddd6fe; text-align: center; padding: 12px 20px; border-radius: 10px;
+    }
+
+    .chat-input-area {
+      display: flex; gap: 8px; padding: 14px 20px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 0 0 12px 12px;
+    }
+    .chat-input-area input {
+      flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 13px; outline: none; transition: border-color 0.15s; background: #f9fafb;
+    }
+    .chat-input-area input:focus { border-color: var(--ii-purple); }
+    .chat-input-area button {
+      padding: 10px 20px; background: var(--ii-purple); color: white; border: none;
+      border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .chat-input-area button:hover { background: var(--ii-purple-dark); }
+    .chat-input-area button:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; }
+
+    /* Example prompts */
+    .example-prompts { margin-top: 12px; }
+    .example-prompts .ep-label { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+    .example-btn {
+      display: inline-block; background: #ede9fe; color: var(--ii-purple); border: 1px solid #ddd6fe;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+      margin: 0 4px 4px 0; transition: all 0.15s;
+    }
+    .example-btn:hover { background: var(--ii-purple); color: white; }
+
+    /* CTA Footer */
+    .cta-footer {
+      background: linear-gradient(135deg, var(--ii-purple-dark), var(--ii-purple));
+      color: white; text-align: center; padding: 28px 24px; margin-top: auto;
+    }
+    .cta-footer h3 { font-size: 18px; margin-bottom: 6px; font-weight: 700; }
+    .cta-footer p { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
+    .cta-footer .cta-btn {
+      display: inline-block; background: var(--ii-accent); color: #1e1b4b;
+      padding: 10px 28px; border-radius: 8px; font-weight: 700; font-size: 14px;
+      text-decoration: none; transition: transform 0.15s;
+    }
+    .cta-footer .cta-btn:hover { transform: translateY(-1px); }
+    .cta-footer .cta-contact { margin-top: 12px; font-size: 12px; opacity: 0.7; }
+
+    /* Mobile sidebar toggle */
+    .sidebar-toggle {
+      display: none; position: fixed; bottom: 24px; left: 24px; width: 48px; height: 48px;
+      background: var(--ii-purple); color: white; border: none; border-radius: 50%;
+      font-size: 20px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 1001; align-items: center; justify-content: center;
+    }
+    .sidebar-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      .main-container { flex-direction: column; padding: 16px; }
+      .sidebar {
+        display: none; position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+        background: var(--bg); z-index: 1000; padding: 20px; overflow-y: auto;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+      }
+      .sidebar.mobile-open { display: block; }
+      .sidebar-overlay.mobile-open { display: block; }
+      .sidebar-toggle { display: flex; }
+      .chat-messages { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">INTERACTIVE DEMO — Pre-generated AI responses showcasing marketing content capabilities for manufacturing</div>
+
+  <header>
+    <div>
+      <div class="logo">Industrial Image</div>
+      <div class="subtitle">AI Marketing Co-Pilot</div>
+    </div>
+    <div class="badge">CONTENT GENERATION</div>
+  </header>
+
+  <div class="main-container">
+    <div class="sidebar" id="sidebar">
+      <h3>Content Types</h3>
+      <div class="content-type active" data-type="product">
+        <div class="ct-title">Product Descriptions</div>
+        <div class="ct-desc">Technical product copy for catalogs, websites, and spec sheets</div>
+      </div>
+      <div class="content-type" data-type="social">
+        <div class="ct-title">Social Media Posts</div>
+        <div class="ct-desc">LinkedIn and social content for manufacturing audiences</div>
+      </div>
+      <div class="content-type" data-type="email">
+        <div class="ct-title">Email Campaigns</div>
+        <div class="ct-desc">Outreach, newsletters, and drip sequence copy</div>
+      </div>
+      <div class="content-type" data-type="blog">
+        <div class="ct-title">Blog &amp; Articles</div>
+        <div class="ct-desc">Thought leadership and SEO content for industrial markets</div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="chat-header-bar">
+        <span class="ch-icon">&#x270F;&#xFE0F;</span>
+        <div>
+          <div class="ch-title">Marketing Content Generator</div>
+          <div class="ch-sub">Describe your product or topic and the AI creates polished marketing copy</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg info">Select a content type and try an example prompt, or type your own request below.</div>
+      </div>
+      <div class="example-prompts" id="example-prompts"></div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Describe what you need..." />
+        <button id="chat-send">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile sidebar -->
+  <button class="sidebar-toggle" id="sidebar-toggle">&#x2630;</button>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <footer class="cta-footer">
+    <h3>AI-Powered Marketing for Manufacturing</h3>
+    <p>Industrial Image's Marketing Co-Pilot generates technical marketing content tailored to your products and audience. From product descriptions to full campaign copy — powered by AI that understands manufacturing.</p>
+    <a class="cta-btn" href="mailto:mcw@i2p-llc.com?subject=Marketing%20Co-Pilot%20Demo">Request a Live Demo</a>
+    <div class="cta-contact">Contact: mcw@i2p-llc.com | I2P, LLC — Alpena, MI</div>
+  </footer>
+
+  <script>
+    // Pre-baked demo responses
+    const responses = {
+      product: {
+        prompts: [
+          "Write a product description for Omni Metalcraft's custom conveyor system",
+          "Create spec sheet copy for PCI ProCal's load-bearing components",
+          "Describe Versa Industrial's precision machining capabilities"
+        ],
+        conversations: {
+          0: [
+            { role: 'user', text: "Write a product description for Omni Metalcraft's custom conveyor system" },
+            { role: 'ai', html: `<h4>Product Description</h4>
+<p><strong>Omni Metalcraft Corp — Custom Conveyor Systems</strong></p>
+<p>Engineered for the demands of modern manufacturing, Omni Metalcraft's custom conveyor systems deliver unmatched material handling performance across heavy-duty industrial environments. With over 40 years of design and fabrication expertise in Alpena, Michigan, every system is purpose-built to your exact specifications.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Custom-engineered belt, roller, and gravity conveyor configurations</li>
+<li>Heavy-gauge steel construction rated for loads up to 10,000 lbs per linear foot</li>
+<li>Modular design enabling rapid reconfiguration as production needs evolve</li>
+<li>Integrated sensor packages for real-time throughput monitoring</li>
+<li>Powder-coated finishes with corrosion-resistant options for harsh environments</li>
+</ul>
+<p>From automotive assembly lines to food processing facilities, Omni Metalcraft systems are built to keep your operation moving — reliably, efficiently, and on schedule.</p>
+<span class="tag">catalog copy</span> <span class="tag">B2B</span> <span class="tag">manufacturing</span>` },
+          ],
+          1: [
+            { role: 'user', text: "Create spec sheet copy for PCI ProCal's load-bearing components" },
+            { role: 'ai', html: `<h4>Spec Sheet Copy</h4>
+<p><strong>PCI ProCal Innovations — Precision Load-Bearing Components</strong></p>
+<p>Since 1986, PCI ProCal has delivered mission-critical load-bearing components to industries where failure is not an option. Our precision-engineered parts meet the tightest tolerances in aerospace, defense, heavy machinery, and structural applications.</p>
+<p><strong>Capabilities:</strong></p>
+<ul>
+<li>Tolerance: &plusmn;0.0005" on critical dimensions</li>
+<li>Materials: 4140 steel, 17-4PH stainless, 7075 aluminum, titanium alloys</li>
+<li>Load ratings: Components tested to 150% of rated capacity per ASTM standards</li>
+<li>Surface finishes: Ra 16&mu;in or better; anodize, chromate, and passivation available</li>
+<li>Certifications: ISO 9001:2015, ITAR registered</li>
+</ul>
+<p>Every component ships with full dimensional inspection reports and material traceability documentation. When the load matters, specify ProCal.</p>
+<span class="tag">technical</span> <span class="tag">spec sheet</span> <span class="tag">precision mfg</span>` },
+          ],
+          2: [
+            { role: 'user', text: "Describe Versa Industrial's precision machining capabilities" },
+            { role: 'ai', html: `<h4>Capabilities Overview</h4>
+<p><strong>Versa Industrial — CAD-to-Manufacturing Precision Machining</strong></p>
+<p>Versa Industrial bridges the gap between digital design and physical reality. Our end-to-end precision machining services take your CAD models from screen to shop floor with zero translation loss — delivering finished components that match your design intent exactly.</p>
+<p><strong>Our Process:</strong></p>
+<ul>
+<li><strong>Design Review:</strong> Our engineers analyze your CAD files for manufacturability, flagging potential issues before the first cut</li>
+<li><strong>5-Axis CNC Machining:</strong> Complex geometries in a single setup, reducing cumulative tolerance error</li>
+<li><strong>In-Process Inspection:</strong> CMM verification at critical stages, not just final</li>
+<li><strong>Rapid Prototyping:</strong> First articles in 5-7 business days for standard materials</li>
+</ul>
+<p>Whether you need one prototype or a production run of 10,000, Versa Industrial delivers the precision your application demands — on time and on spec.</p>
+<span class="tag">website copy</span> <span class="tag">capabilities</span> <span class="tag">machining</span>` },
+          ],
+        }
+      },
+      social: {
+        prompts: [
+          "LinkedIn post announcing Omni Metalcraft's new automated conveyor line",
+          "Social post highlighting ESI's manufacturing workforce solutions",
+          "LinkedIn thought leadership post on AI in manufacturing"
+        ],
+        conversations: {
+          0: [
+            { role: 'user', text: "LinkedIn post announcing Omni Metalcraft's new automated conveyor line" },
+            { role: 'ai', html: `<h4>LinkedIn Post</h4>
+<p><strong>Exciting news from the shop floor.</strong></p>
+<p>Omni Metalcraft Corp just shipped our most advanced automated conveyor system yet — a fully integrated material handling solution with real-time load sensing, automated routing, and predictive maintenance alerts.</p>
+<p>What makes this different? It's not just moving product from A to B. It's making decisions. The integrated sensor array monitors throughput, detects jams before they happen, and reroutes material automatically.</p>
+<p>40+ years of conveyor engineering meets modern automation. Built in Alpena, MI. Deployed nationwide.</p>
+<p>If your facility is still running manual material handling, let's talk about what's possible.</p>
+<p>#Manufacturing #Automation #MaterialHandling #MadeInMichigan #Industry40 #ConveyorSystems</p>
+<span class="tag">LinkedIn</span> <span class="tag">announcement</span> <span class="tag">440 chars</span>` },
+          ],
+          1: [
+            { role: 'user', text: "Social post highlighting ESI's manufacturing workforce solutions" },
+            { role: 'ai', html: `<h4>LinkedIn Post</h4>
+<p><strong>The manufacturing skills gap is real. Here's how we're closing it.</strong></p>
+<p>At ESI (Employment Services Inc), we've placed skilled workers in 90+ manufacturing companies across Michigan. We've learned something: the gap isn't just about finding people. It's about finding the <em>right</em> people for increasingly technical roles.</p>
+<p>Our approach:</p>
+<ul>
+<li>Technical skills assessment before placement — not just a resume review</li>
+<li>Industry-specific onboarding programs developed with our manufacturing partners</li>
+<li>Retention tracking and support for the first 90 days</li>
+</ul>
+<p>The result? 23% higher retention rates than industry average and manufacturing partners who trust us to staff their most critical roles.</p>
+<p>Manufacturing is evolving. Your workforce strategy should too.</p>
+<p>#ManufacturingJobs #WorkforceDevelopment #SkillsGap #MichiganManufacturing #Staffing</p>
+<span class="tag">LinkedIn</span> <span class="tag">thought leadership</span> <span class="tag">ESI</span>` },
+          ],
+          2: [
+            { role: 'user', text: "LinkedIn thought leadership post on AI in manufacturing" },
+            { role: 'ai', html: `<h4>LinkedIn Post</h4>
+<p><strong>AI in manufacturing isn't about replacing people. It's about this:</strong></p>
+<p>Every manufacturer I talk to has the same backlog. Projects that would save hundreds of hours per year but cost thousands of hours to build. Integrations that would unlock new revenue but require a team of four for six months.</p>
+<p>AI changes the math on those projects. Not because it replaces your engineers — because it makes projects viable that weren't before.</p>
+<p>Three examples from our network:</p>
+<ul>
+<li>A lease audit tool that would have taken 6 months to spec and build — delivered as a working prototype in days</li>
+<li>An operational analytics dashboard comparing KPIs across a 3-company network — built and deployed in a single session</li>
+<li>A technical knowledge base for complex product specs — searchable, conversational, always current</li>
+</ul>
+<p>The question isn't "will AI affect manufacturing?" It already is. The question is whether you're using it to tackle your backlog or watching competitors tackle theirs.</p>
+<p>#ManufacturingAI #Industry40 #DigitalTransformation #AIinManufacturing</p>
+<span class="tag">thought leadership</span> <span class="tag">I2P network</span> <span class="tag">620 chars</span>` },
+          ],
+        }
+      },
+      email: {
+        prompts: [
+          "Cold outreach email introducing AI solutions to a manufacturing VP",
+          "Follow-up email after a demo showing ROI projections",
+          "Monthly newsletter intro for I2P network partners"
+        ],
+        conversations: {
+          0: [
+            { role: 'user', text: "Cold outreach email introducing AI solutions to a manufacturing VP" },
+            { role: 'ai', html: `<h4>Email — Cold Outreach</h4>
+<p><strong>Subject:</strong> Your backlog of "someday" projects — we can build them now</p>
+<p>Hi [Name],</p>
+<p>Every manufacturing operation I've worked with has a list of projects that never made it off the whiteboard. The internal tool that would save 200 hours a year but costs 2,000 hours to build. The integration that would unlock a new revenue stream but needs a team of four for six months.</p>
+<p>We're making those projects viable. Using AI-powered development tools, we're delivering working prototypes of those "someday" projects in days, not months — at a fraction of traditional development cost.</p>
+<p>For companies in your space, we've built:</p>
+<ul>
+<li>Asset management tools that identify lease rate misalignments across thousands of records</li>
+<li>Operational dashboards that compare KPIs across multi-facility networks</li>
+<li>Technical knowledge bases that make complex product specs instantly searchable</li>
+</ul>
+<p>Would it be worth 15 minutes to see what a working prototype looks like for your highest-priority backlog item?</p>
+<p>Best,<br>[Your name]<br>I2P, LLC | AI-Powered Software Consulting</p>
+<span class="tag">cold email</span> <span class="tag">B2B</span> <span class="tag">145 words</span>` },
+          ],
+          1: [
+            { role: 'user', text: "Follow-up email after a demo showing ROI projections" },
+            { role: 'ai', html: `<h4>Email — Post-Demo Follow-Up</h4>
+<p><strong>Subject:</strong> Your demo recap + what the numbers look like</p>
+<p>Hi [Name],</p>
+<p>Thanks for taking the time to review the [tool name] prototype yesterday. I wanted to follow up with the ROI projections we discussed.</p>
+<p><strong>Current state (manual process):</strong></p>
+<ul>
+<li>~40 hours/month spent on [process] across your team</li>
+<li>Error rate: estimated 3-5% requiring rework</li>
+<li>Annualized cost: ~$96,000 (labor + rework + opportunity cost)</li>
+</ul>
+<p><strong>With the AI-powered tool:</strong></p>
+<ul>
+<li>Process time reduced to ~6 hours/month (85% reduction)</li>
+<li>Error rate: <0.5% with automated validation</li>
+<li>Annualized savings: ~$78,000</li>
+<li>Implementation timeline: 4-6 weeks to production-ready</li>
+</ul>
+<p>The prototype you saw is roughly 70% of the way to a production deployment. The remaining work is connecting to your live data sources and adding the user authentication layer your IT team mentioned.</p>
+<p>Want to schedule a call with your team to discuss next steps?</p>
+<p>Best,<br>[Your name]</p>
+<span class="tag">follow-up</span> <span class="tag">ROI</span> <span class="tag">sales enablement</span>` },
+          ],
+          2: [
+            { role: 'user', text: "Monthly newsletter intro for I2P network partners" },
+            { role: 'ai', html: `<h4>Newsletter Introduction</h4>
+<p><strong>I2P Network Monthly — February 2026</strong></p>
+<p>This month's theme: <strong>turning your backlog into your competitive advantage.</strong></p>
+<p>Across the I2P network, our companies share a common trait — a deep bench of domain expertise built over decades of manufacturing excellence. Omni Metalcraft's 40 years in material handling. PCI ProCal's precision engineering since 1986. Versa Industrial's CAD-to-part mastery.</p>
+<p>That expertise is an asset. And now, AI tools are making it possible to operationalize that knowledge in ways that weren't economically viable before.</p>
+<p><strong>In this issue:</strong></p>
+<ul>
+<li>How ESI is using analytics dashboards to benchmark operational KPIs across 90+ manufacturing clients</li>
+<li>PCI ProCal's new technical knowledge base — making complex specs instantly searchable</li>
+<li>Case study: From spreadsheet to smart tool — IFMC's lease audit transformation</li>
+<li>Coming soon: The Innovation Co-Pilot for product development ideation</li>
+</ul>
+<p>As always, if you have projects gathering dust on a whiteboard somewhere, we want to hear about them.</p>
+<p>— The I2P Team</p>
+<span class="tag">newsletter</span> <span class="tag">I2P network</span> <span class="tag">monthly</span>` },
+          ],
+        }
+      },
+      blog: {
+        prompts: [
+          "Blog intro: 'Why Manufacturing Companies Are Sitting on AI Goldmines'",
+          "Article outline: Digital transformation for mid-size manufacturers",
+          "Blog intro: 'The Solopreneur Playbook for Manufacturing Software'"
+        ],
+        conversations: {
+          0: [
+            { role: 'user', text: "Blog intro: 'Why Manufacturing Companies Are Sitting on AI Goldmines'" },
+            { role: 'ai', html: `<h4>Blog Introduction</h4>
+<p><strong>Why Manufacturing Companies Are Sitting on AI Goldmines</strong></p>
+<p><em>And why the smartest ones are mining them right now.</em></p>
+<p>Every manufacturing company I've worked with has the same thing hiding in plain sight: a backlog of projects that were never economically viable.</p>
+<p>The internal tool that would save 200 hours per year — but costs 2,000 hours to build. The cross-facility dashboard that everyone agrees would be transformative — but needs a team of four for six months. The customer-facing portal that would differentiate you from every competitor — but always loses priority to the next production crisis.</p>
+<p>These aren't failed projects. They're <strong>unmined goldmines.</strong></p>
+<p>Here's what changed: AI-powered development has fundamentally altered the cost equation for custom software. A project that required a $200,000 budget and a six-month timeline can now be prototyped in days and deployed in weeks — often by a single engineer augmented with AI tools.</p>
+<p>The companies that recognize this shift aren't just building faster. They're building <em>things they never would have built at all.</em> They're dramatically expanding the scope of what's possible, not just the speed.</p>
+<p><em>In this article, we'll look at three real examples from Michigan's manufacturing corridor and break down the economics that make them work...</em></p>
+<span class="tag">blog post</span> <span class="tag">SEO</span> <span class="tag">thought leadership</span>` },
+          ],
+          1: [
+            { role: 'user', text: "Article outline: Digital transformation for mid-size manufacturers" },
+            { role: 'ai', html: `<h4>Article Outline</h4>
+<p><strong>Digital Transformation for Mid-Size Manufacturers: A Practical Guide</strong></p>
+<p><em>Target: 1,800 words | Audience: Manufacturing VPs and Operations Directors | Tone: Practical, not hype</em></p>
+<p><strong>1. Introduction — Skip the buzzwords</strong> (200 words)<br>
+Digital transformation doesn't mean ripping out your ERP. For mid-size manufacturers (50-500 employees), it means solving the specific problems your current tools can't.</p>
+<p><strong>2. The three tiers of manufacturing digitalization</strong> (400 words)</p>
+<ul>
+<li><strong>Tier 1: Visibility</strong> — Dashboards, KPI tracking, cross-facility comparison. Cost: low. Impact: immediate.</li>
+<li><strong>Tier 2: Automation</strong> — Workflow automation, document processing, quality checks. Cost: medium. Impact: compounding.</li>
+<li><strong>Tier 3: Intelligence</strong> — Predictive maintenance, demand forecasting, generative design. Cost: higher. Impact: transformative.</li>
+</ul>
+<p><strong>3. Start with Tier 1 — here's why</strong> (300 words)<br>
+Most companies jump to Tier 3 (the exciting stuff) and fail. Start with visibility. You can't optimize what you can't see.</p>
+<p><strong>4. Three real-world examples</strong> (500 words)<br>
+Lease audit tool, operational analytics dashboard, technical knowledge base.</p>
+<p><strong>5. The build-vs-buy decision in 2026</strong> (200 words)<br>
+AI development tools have shifted the equation. Custom software is now viable at budgets that previously only bought off-the-shelf.</p>
+<p><strong>6. Getting started — the 30-day pilot</strong> (200 words)<br>
+Pick one pain point. Build a prototype. Measure the result. Decide.</p>
+<span class="tag">article outline</span> <span class="tag">1800 words</span> <span class="tag">SEO</span>` },
+          ],
+          2: [
+            { role: 'user', text: "Blog intro: 'The Solopreneur Playbook for Manufacturing Software'" },
+            { role: 'ai', html: `<h4>Blog Introduction</h4>
+<p><strong>The Solopreneur Playbook for Manufacturing Software</strong></p>
+<p><em>Why the startup playbook isn't "raise more money, buy more tokens."</em></p>
+<p>There's a narrative in tech that AI startups need massive funding to compete. More GPUs. More tokens. More engineers. The assumption is that scale wins.</p>
+<p>In manufacturing software, that assumption is wrong.</p>
+<p>Here's why: the companies spending $20,000 a month on AI infrastructure are building horizontal platforms — tools that do everything adequately for everyone. They're competing on volume, and they need capital to sustain it.</p>
+<p>But a $200/month Claude subscription, aimed precisely at the right problem in the right niche, can create more downstream value than that $20K budget pointed at the wrong one.</p>
+<p>The manufacturing sector is full of niches that horizontal platforms will never serve well. Lease rate normalization for multi-facility operations. KPI benchmarking across networks of specialty manufacturers. Technical documentation search for products with 30 years of spec history.</p>
+<p>These aren't markets that show up in Gartner reports. But they're markets where a single builder with deep domain knowledge can deliver more value than a well-funded team that doesn't understand the domain.</p>
+<p>This is the solopreneur playbook: <strong>know a market so well that precision beats scale.</strong></p>
+<span class="tag">blog post</span> <span class="tag">thought leadership</span> <span class="tag">solopreneur</span>` },
+          ],
+        }
+      }
+    };
+
+    // State
+    let currentType = 'product';
+
+    // DOM refs
+    const messagesEl = document.getElementById('chat-messages');
+    const inputEl = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    const promptsEl = document.getElementById('example-prompts');
+
+    // Content type selection
+    document.querySelectorAll('.content-type').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.content-type').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        currentType = el.dataset.type;
+        renderExamples();
+        closeMobileSidebar();
+      });
+    });
+
+    function renderExamples() {
+      const data = responses[currentType];
+      let html = '<div class="ep-label">Try an example:</div>';
+      data.prompts.forEach((p, i) => {
+        html += `<span class="example-btn" data-idx="${i}">${p}</span>`;
+      });
+      promptsEl.innerHTML = html;
+      document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', () => runExample(parseInt(btn.dataset.idx)));
+      });
+    }
+
+    function runExample(idx) {
+      const data = responses[currentType];
+      const conv = data.conversations[idx];
+      if (!conv) return;
+
+      // Clear and show conversation
+      messagesEl.innerHTML = '';
+      conv.forEach((msg, i) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'chat-msg ' + msg.role;
+          if (msg.role === 'user') {
+            div.textContent = msg.text;
+          } else {
+            div.innerHTML = msg.html;
+          }
+          messagesEl.appendChild(div);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }, i * 400);
+      });
+    }
+
+    // Send button (uses first matching example or shows info)
+    sendBtn.addEventListener('click', handleSend);
+    inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+
+    function handleSend() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      // Show user message
+      const userDiv = document.createElement('div');
+      userDiv.className = 'chat-msg user';
+      userDiv.textContent = text;
+      messagesEl.appendChild(userDiv);
+      inputEl.value = '';
+
+      // Show demo response
+      setTimeout(() => {
+        const data = responses[currentType];
+        // Use first example response as demo
+        const conv = data.conversations[0];
+        const aiMsg = conv[conv.length - 1];
+        const div = document.createElement('div');
+        div.className = 'chat-msg ai';
+        div.innerHTML = aiMsg.html;
+        messagesEl.appendChild(div);
+
+        // Add info note
+        const info = document.createElement('div');
+        info.className = 'chat-msg info';
+        info.textContent = 'This is a static demo with pre-generated responses. In the full version, the AI generates unique content for every request using your product data and brand guidelines.';
+        messagesEl.appendChild(info);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }, 800);
+    }
+
+    // Mobile sidebar
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('mobile-open');
+      sidebarOverlay.classList.toggle('mobile-open');
+    });
+    sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+    function closeMobileSidebar() {
+      sidebar.classList.remove('mobile-open');
+      sidebarOverlay.classList.remove('mobile-open');
+    }
+
+    // Init
+    renderExamples();
+  </script>
+</body>
+</html>
